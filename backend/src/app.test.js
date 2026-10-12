@@ -6,6 +6,7 @@ import User from "./models/User.js";
 import Expense from "./models/Expense.js";
 import Budget from "./models/Budget.js";
 import Category from "./models/Category.js";
+import { getCategoryRankings, getUtcMonthRange } from "./routes/admin.js";
 
 let server;
 let baseUrl;
@@ -53,6 +54,32 @@ test("expense input rejects zero-value amounts", () => {
     paymentMethod: "cash"
   });
   assert.equal(result.success, false);
+});
+
+test("admin category rankings use expense counts and include unused categories", () => {
+  const categories = [
+    { category: "Food", count: 7 },
+    { category: "Transport", count: 5 },
+    { category: "Utilities", count: 5 },
+    { category: "Shopping", count: 4 },
+    { category: "Entertainment", count: 3 },
+    { category: "Healthcare", count: 2 },
+    { category: "Housing", count: 0 }
+  ];
+
+  const { topCategories, bottomCategories } = getCategoryRankings(categories);
+  assert.deepEqual(topCategories.map(({ category }) => category), [
+    "Food", "Transport", "Utilities", "Shopping", "Entertainment"
+  ]);
+  assert.deepEqual(bottomCategories.map(({ category }) => category), [
+    "Housing", "Healthcare", "Entertainment", "Shopping", "Transport"
+  ]);
+});
+
+test("admin current-month range uses UTC month boundaries", () => {
+  const { start, end } = getUtcMonthRange(new Date("2026-12-31T23:59:59.000Z"));
+  assert.equal(start.toISOString(), "2026-12-01T00:00:00.000Z");
+  assert.equal(end.toISOString(), "2027-01-01T00:00:00.000Z");
 });
 
 test("MongoDB models define the required Retain collections and fields", () => {
