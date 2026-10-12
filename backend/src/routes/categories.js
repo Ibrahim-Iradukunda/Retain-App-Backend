@@ -47,6 +47,7 @@ router.patch("/:id", requireAuth, requireAdmin, async (req, res) => {
 
 router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {
   const id = objectIdSchema.parse(req.params.id);
+  // Reject deletion while expenses reference this category to avoid orphaned records.
   if (await Expense.exists({ category: id })) {
     return res.status(409).json({ message: "This category is in use and cannot be deleted." });
   }

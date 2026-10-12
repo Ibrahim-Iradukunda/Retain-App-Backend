@@ -28,6 +28,7 @@ router.get("/", requireAuth, async (req, res) => {
     return res.status(400).json({ message: "The minimum amount cannot exceed the maximum amount." });
   }
 
+  // Scope both the listed records and their pagination count to the signed-in user.
   const filter = { user: req.user.id };
   if (query.category) filter.category = query.category;
   if (query.paymentMethod) filter.paymentMethod = query.paymentMethod;

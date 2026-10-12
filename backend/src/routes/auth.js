@@ -26,6 +26,7 @@ function publicUser(user) {
 
 router.post("/signup", async (req, res) => {
   const input = signUpSchema.parse(req.body);
+  // Persist only the bcrypt hash; plaintext passwords are never stored.
   const user = await User.create({
     name: input.name,
     email: input.email.toLowerCase(),

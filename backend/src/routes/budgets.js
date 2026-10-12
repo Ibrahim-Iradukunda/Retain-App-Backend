@@ -10,6 +10,7 @@ const budgetSchema = z.object({
   amount: z.coerce.number().finite().positive().max(1_000_000_000)
 });
 
+// Both budget operations include the authenticated user ID to isolate each user's budgets.
 router.get("/", requireAuth, async (req, res) => {
   const year = z.coerce.number().int().min(2000).max(9999).default(new Date().getFullYear()).parse(req.query.year);
   const budgets = await Budget.find({ user: req.user.id, year }).sort({ month: 1 }).lean();
@@ -18,6 +19,7 @@ router.get("/", requireAuth, async (req, res) => {
 
 router.put("/", requireAuth, async (req, res) => {
   const input = budgetSchema.parse(req.body);
+  // Update this user's budget for the month, or create it if it does not exist yet.
   const budget = await Budget.findOneAndUpdate(
     { user: req.user.id, year: input.year, month: input.month },
     { $set: { amount: input.amount } },

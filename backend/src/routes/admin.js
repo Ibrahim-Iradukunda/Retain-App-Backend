@@ -5,6 +5,7 @@ import User from "../models/User.js";
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
 
 const router = Router();
+// Every admin endpoint in this router requires both a valid JWT and the admin role.
 router.use(requireAuth, requireAdmin);
 
 export function getUtcMonthRange(date = new Date()) {
@@ -15,6 +16,7 @@ export function getUtcMonthRange(date = new Date()) {
 
 export function getCurrentMonthExpenseFilter(date = new Date()) {
   const { start, end } = getUtcMonthRange(date);
+  // Count when an expense was recorded, rather than the transaction date it describes.
   return { createdAt: { $gte: start, $lt: end } };
 }
 
@@ -32,6 +34,7 @@ router.get("/insights", async (req, res) => {
   const [registeredUsers, expenseStats, categoryStats, currentMonthExpenseCount, recentUsers, recentExpenses] = await Promise.all([
     User.countDocuments(),
     Expense.aggregate([{ $group: { _id: null, count: { $sum: 1 }, total: { $sum: "$amount" } } }]),
+    // Start with categories so unused ones remain available for the least-used ranking.
     Category.aggregate([
       {
         $lookup: {
