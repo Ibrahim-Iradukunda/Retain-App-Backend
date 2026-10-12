@@ -6,7 +6,7 @@ import User from "./models/User.js";
 import Expense from "./models/Expense.js";
 import Budget from "./models/Budget.js";
 import Category from "./models/Category.js";
-import { getCategoryRankings, getUtcMonthRange } from "./routes/admin.js";
+import { getCategoryRankings, getCurrentMonthExpenseFilter, getUtcMonthRange } from "./routes/admin.js";
 
 let server;
 let baseUrl;
@@ -80,6 +80,16 @@ test("admin current-month range uses UTC month boundaries", () => {
   const { start, end } = getUtcMonthRange(new Date("2026-12-31T23:59:59.000Z"));
   assert.equal(start.toISOString(), "2026-12-01T00:00:00.000Z");
   assert.equal(end.toISOString(), "2027-01-01T00:00:00.000Z");
+});
+
+test("admin current-month count filters by when expenses were recorded", () => {
+  const filter = getCurrentMonthExpenseFilter(new Date("2026-10-12T12:00:00.000Z"));
+  assert.deepEqual(filter, {
+    createdAt: {
+      $gte: new Date("2026-10-01T00:00:00.000Z"),
+      $lt: new Date("2026-11-01T00:00:00.000Z")
+    }
+  });
 });
 
 test("MongoDB models define the required Retain collections and fields", () => {
